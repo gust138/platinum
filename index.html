@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Платинум Арена — компьютерный клуб с отдельными комнатами</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..650&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#050507;color:#fff;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+#gl{position:fixed;inset:0}
+#gl canvas{display:block}
+#txt{position:fixed;left:0;top:0;transform-origin:0 0;pointer-events:none;visibility:hidden}
+#txt .t{position:absolute;white-space:pre;color:transparent;pointer-events:auto;text-decoration:none;line-height:1.2;display:block}
+#txt .b{cursor:pointer}
+::selection{background:rgba(60,120,255,.55);color:transparent}
+#defs{position:fixed;inset:0;opacity:0;pointer-events:none;transition:opacity .25s}
+#defs.on{opacity:1;pointer-events:auto;transition:opacity .4s}
+#defs ::selection{color:#fff}
+#defs .col{position:absolute;left:32.4vw;width:33.9vw;top:35.9vh}
+#defs h2{position:absolute;bottom:100%;left:0;margin-bottom:1.1vw;white-space:nowrap;font-weight:600;font-size:clamp(21px,1.6vw,34px);letter-spacing:-.022em}
+#defs p{font-size:clamp(12.5px,.86vw,17px);line-height:1.72;color:rgba(255,255,255,.6);margin-bottom:1.05vw}
+#defs p b{color:#fff;font-weight:600}
+#defs .note{font-size:clamp(11px,.72vw,14px);color:rgba(255,255,255,.4)}
+#defs .ph{position:absolute;left:70vw;top:14vh;width:24vw;display:grid;gap:12px}
+#defs .ph img{width:100%;height:20vh;object-fit:cover;border-radius:14px;border:1px solid rgba(255,255,255,.12);filter:saturate(.95)}
+#back{position:fixed;transform:translate(-50%,-50%);font:500 clamp(12px,.9vw,18px) Inter,sans-serif;color:#fff;background:none;border:0;cursor:pointer;opacity:0;pointer-events:none;transition:color .15s,opacity .2s;padding:10px 16px}
+body.view #back{opacity:1;pointer-events:auto}
+#back:hover{color:#b9abff}
+#fallback{display:none;position:absolute;inset:0;overflow:auto;padding:24px;background:#050507}
+.nogl{overflow:auto}
+.nogl html,.nogl body{overflow:auto}
+.nogl #fallback{display:block}
+.nogl #gl,.nogl #txt,.nogl #defs,.nogl #back{display:none}
+#fallback .in{max-width:1100px;margin:0 auto}
+#fallback .nav{display:flex;justify-content:space-between;padding:16px 22px;background:#17171b;border-radius:20px;border:1px solid #2a2a31;margin-bottom:14px;font-size:15px}
+#fallback .hero{padding:56px 40px;background:#17171b;border-radius:20px;border:1px solid #2a2a31;margin-bottom:14px}
+#fallback .eb{font-size:12px;letter-spacing:.2em;color:rgba(255,255,255,.38)}
+#fallback h1{font-weight:500;font-size:clamp(44px,8vw,96px);letter-spacing:-.045em;line-height:.97;margin:22px 0;background:linear-gradient(#dcdce0,#bdbdc3);-webkit-background-clip:text;background-clip:text;color:transparent}
+#fallback p{color:rgba(255,255,255,.55);max-width:560px;line-height:1.55}
+#fallback a.pill{display:inline-block;margin-top:26px;padding:12px 24px;border-radius:6px;background:#f2f2f4;color:#0b0b0d;text-decoration:none;font-weight:500}
+#fallback .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:14px}
+#fallback .grid div{padding:22px;background:#17171b;border-radius:20px;border:1px solid #2a2a31}
+#fallback .grid b{display:block;font-size:24px;margin-bottom:4px}
+#fallback .grid span{color:rgba(255,255,255,.5);font-size:14px}
+#fallback img{width:100%;height:200px;object-fit:cover;border-radius:16px}
+</style>
+</head>
+<body>
+<div id="gl"></div>
+<div id="txt"></div>
+<div id="defs">
+ <div class="col">
+  <h2>Пять форматов комнат.</h2>
+  <p><b>Boot Camp room</b> — 150 ₽ в час за место. Большая комната для команды.</p>
+  <p><b>Trio room</b> — 180 ₽ в час. Комната на троих.</p>
+  <p><b>Duo room</b> — 220 ₽ в час. Комната для двоих.</p>
+  <p><b>Solo room</b> — 290 ₽ в час. Своя комната для одного игрока.</p>
+  <p><b>PS5 и ТВ</b> — 350 ₽ в час (PS5 + TV Haier 75″) или 400 ₽ в час (PS5 Pro + TV Xiaomi 85″).</p>
+  <p class="note">Октябрьская ул., 34, Новосибирск (вход с угла здания) · +7 (913) 069-85-99</p>
+ </div>
+ <div class="ph">
+  <img src="https://avatars.mds.yandex.net/get-altay/20305182/2a000001a10cc5a1299047dba9a9de7703e1/XXL" alt=""><img src="https://avatars.mds.yandex.net/get-altay/18111423/2a0000019e7891c76b7105615a2773549ae0/XXL" alt=""><img src="https://avatars.mds.yandex.net/get-altay/20244164/2a0000019e7892423c83843569a38871cb71/XXL" alt="">
+ </div>
+</div>
+<button id="back">← Назад</button>
+
+<div id="fallback"><div class="in">
+ <div class="nav"><b>Платинум Арена</b><span>+7 (913) 069-85-99</span></div>
+ <div class="hero"><div class="eb">КОМПЬЮТЕРНЫЙ КЛУБ · НОВОСИБИРСК · 24/7</div><h1>Играй<br>в комнате.</h1><p>Отдельные комнаты Solo, Duo, Trio и Boot Camp, консоли PS5 и мощные ПК. Круглосуточно — от 150 ₽ за час.</p><a class="pill" href="tel:+79130698599">Забронировать</a></div>
+ <div class="grid"><div><b>Boot Camp</b><span>150 ₽ / час</span></div><div><b>Trio</b><span>180 ₽ / час</span></div><div><b>Duo</b><span>220 ₽ / час</span></div><div><b>Solo</b><span>290 ₽ / час</span></div><div><b>PS5 + ТВ</b><span>от 350 ₽ / час</span></div></div>
+ <div class="grid"><img src="https://avatars.mds.yandex.net/get-altay/20305182/2a000001a10cc5a1299047dba9a9de7703e1/XXL" alt=""><img src="https://avatars.mds.yandex.net/get-altay/18111423/2a0000019e7891c76b7105615a2773549ae0/XXL" alt=""><img src="https://avatars.mds.yandex.net/get-altay/19809277/2a000001a08fd7af9fae7889add5a1193216/XXL" alt=""></div>
+</div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+
+const $=s=>document.querySelector(s), DEG=Math.PI/180, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let renderer=null;
+try{
+  const c=document.createElement('canvas');
+  if(!(c.getContext('webgl2')||c.getContext('webgl'))) throw 0;
+  renderer=new THREE.WebGLRenderer({antialias:true});
+}catch(e){renderer=null}
+if(!renderer||reduce){ document.documentElement.classList.add('nogl'); document.body.classList.add('nogl'); }
+else init();
+
+async function init(){
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.setClearColor(0x050507,1);
+$('#gl').appendChild(renderer.domElement);
+
+const scene=new THREE.Scene();
+const pm=new THREE.PMREMGenerator(renderer);
+const envTex=pm.fromScene(new RoomEnvironment(),0.04).texture;
+scene.environment=envTex; scene.environmentIntensity=.42;
+const keyL=new THREE.DirectionalLight(0xd6e0ff,1.6); keyL.position.set(-700,800,1000); scene.add(keyL);
+const camera=new THREE.PerspectiveCamera(30,1,50,9000);
+const block=new THREE.Group(); scene.add(block);
+
+/* ---------- state ---------- */
+let W,H,DPR,S,U,F,T,BW,BH,navH,G,PX,PY,PW,PH,portrait,BV;
+const ptr={x:innerWidth/2,y:innerHeight/2,inside:false}; let ptrAmt=0;
+let mode='out', anim=null, viewOn=false, pendingBack=false, hot=null, sliverShowAt=0;
+let items=[], cv=document.createElement('canvas'), ctx=cv.getContext('2d'), pageTex=null;
+const mc=document.createElement('canvas').getContext('2d');
+const tilt={ry:0,rx:0};
+
+/* ---------- glass material ---------- */
+const glowU={uPtr:{value:new THREE.Vector2(1e5,1e5)},uAmt:{value:0},uR:{value:300}};
+function glassMat(irid,glow){
+  const m=new THREE.MeshPhysicalMaterial({color:0x17171b,roughness:.36,metalness:.1,clearcoat:.7,clearcoatRoughness:.12,specularIntensity:.7,iridescence:irid,iridescenceIOR:1.3,iridescenceThicknessRange:[250,650],envMap:envTex,envMapIntensity:.42});
+  if(glow){
+    m.onBeforeCompile=sh=>{
+      Object.assign(sh.uniforms,glowU);
+      sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vGW;').replace('#include <begin_vertex>','#include <begin_vertex>\nvGW=(modelMatrix*vec4(transformed,1.0)).xyz;');
+      sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vGW;\nuniform vec2 uPtr;\nuniform float uAmt;\nuniform float uR;').replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\n{float d=length(vGW.xy-uPtr);totalEmissiveRadiance+=vec3(.42,.37,.62)*.16*exp(-1.6*(d/uR)*(d/uR))*uAmt;}');
+    };
+    m.customProgramCacheKey=()=>'glowglass';
+  }
+  return m;
+}
+
+/* ---------- geometry helpers ---------- */
+function insetPoly(pts,d){
+  const n=pts.length; let cx=0,cy=0; pts.forEach(p=>{cx+=p[0];cy+=p[1]}); cx/=n; cy/=n;
+  const L=[];
+  for(let i=0;i<n;i++){
+    const a=pts[i],b=pts[(i+1)%n]; let ex=b[0]-a[0],ey=b[1]-a[1]; const l=Math.hypot(ex,ey)||1; ex/=l; ey/=l;
+    let nx=-ey,ny=ex; if(nx*(cx-(a[0]+b[0])/2)+ny*(cy-(a[1]+b[1])/2)<0){nx=-nx;ny=-ny}
+    L.push({px:a[0]+nx*d,py:a[1]+ny*d,dx:ex,dy:ey});
+  }
+  return L.map((_,i)=>{
+    const A=L[(i+n-1)%n],B=L[i]; const den=A.dx*B.dy-A.dy*B.dx;
+    if(Math.abs(den)<1e-6) return [B.px,B.py];
+    const t=((B.px-A.px)*B.dy-(B.py-A.py)*B.dx)/den; return [A.px+A.dx*t,A.py+A.dy*t];
+  });
+}
+function roundedShape(pts,r,cx,cy){
+  const n=pts.length, P=pts.map(p=>[p[0]-cx,cy-p[1]]), sh=new THREE.Shape(), seg=[];
+  for(let i=0;i<n;i++){
+    const v=P[i],a=P[(i+n-1)%n],b=P[(i+1)%n];
+    let ax=a[0]-v[0],ay=a[1]-v[1],bx=b[0]-v[0],by=b[1]-v[1]; const la=Math.hypot(ax,ay)||1,lb=Math.hypot(bx,by)||1; ax/=la;ay/=la;bx/=lb;by/=lb;
+    const rr=Math.min(r,la*.5,lb*.5);
+    seg.push({v,s:[v[0]+ax*rr,v[1]+ay*rr],e:[v[0]+bx*rr,v[1]+by*rr]});
+  }
+  sh.moveTo(seg[0].s[0],seg[0].s[1]);
+  for(let i=0;i<n;i++){ const q=seg[i]; sh.lineTo(q.s[0],q.s[1]); sh.quadraticCurveTo(q.v[0],q.v[1],q.e[0],q.e[1]); }
+  sh.closePath(); return sh;
+}
+
+/* ---------- pieces ---------- */
+const cells={A:['TL','tAB','J0','bAD','BL'],B:['tAB','tBC','J1','J0'],C:['tBC','tCE','J2','J1'],D:['J0','J1','J2','bDE','bAD'],E:['tCE','TR','BR','bDE','J2']};
+const baseP={tAB:[.22,0],tBC:[.515,0],tCE:[.84,0],bAD:[.34,1],bDE:[.865,1],J0:[.385,.72],J1:[.48,.62],J2:[.716,.49]};
+let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646};
+const drift={}; for(const k in baseP) drift[k]={px:10+rnd()*10,py:10+rnd()*10,fx:rnd()*6.28,fy:rnd()*6.28};
+const pieces=['nav','A','B','C','D','E'].map((id,i)=>{
+  const mat=glassMat(.55,true);
+  const mesh=new THREE.Mesh(new THREE.BufferGeometry(),mat);
+  const decal=new THREE.Mesh(new THREE.BufferGeometry(),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
+  decal.renderOrder=2;
+  const obj=new THREE.Group(); obj.add(mesh,decal); block.add(obj);
+  const ax=new THREE.Vector3(rnd()-.5,rnd()-.5,rnd()-.5).normalize();
+  return {id,i,mat,mesh,decal,obj,base:new THREE.Vector2(),hw:100,hh:100,lift:{x:0,v:0},rx:{x:0,v:0},ry:{x:0,v:0},hov:0,
+    fly:{ax,ang:(2+rnd()*1.6)*(rnd()<.5?-1:1),vz:420+rnd()*380,r:rnd()}};
+});
+
+function currentPoints(t){
+  const P={TL:[0,0],TR:[1,0],BL:[0,1],BR:[1,1]};
+  let pn=null;
+  if(ptrAmt>.001){
+    let nx=(ptr.x-(W-BW)/2-PX)/PW, ny=(ptr.y-(H-BH)/2-PY)/PH; if(portrait)[nx,ny]=[ny,nx]; pn=[nx,ny];
+  }
+  for(const k in baseP){
+    const b=baseP[k],d=drift[k]; const isJ=k[0]==='J';
+    let x=b[0]+.03*Math.sin(t*6.2832/d.px+d.fx), y=b[1]+(isJ?.05*Math.sin(t*6.2832/d.py+d.fy):0);
+    if(pn){ const dx=x-pn[0],dy=y-pn[1],dd=Math.hypot(dx,dy); if(dd<.6&&dd>1e-4){ const p=.05*(1-dd/.6)*ptrAmt; x+=dx/dd*p; if(isJ) y+=dy/dd*p; } }
+    P[k]=[x,y];
+  }
+  return P;
+}
+function rebuild(t){
+  const P=currentPoints(t), halfD=6.5*U;
+  for(const p of pieces){
+    let pts;
+    if(p.id==='nav') pts=[[0,0],[BW,0],[BW,navH],[0,navH]];
+    else pts=cells[p.id].map(n=>{let [x,y]=P[n]; if(portrait)[x,y]=[y,x]; return [PX+x*PW,PY+y*PH]});
+    const ins=insetPoly(pts,G/2);
+    let cx=0,cy=0,x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+    for(const q of ins){cx+=q[0];cy+=q[1];x0=Math.min(x0,q[0]);x1=Math.max(x1,q[0]);y0=Math.min(y0,q[1]);y1=Math.max(y1,q[1])}
+    cx/=ins.length; cy/=ins.length;
+    const g=new THREE.ExtrudeGeometry(roundedShape(ins,20*U,cx,cy),{depth:13*U,bevelEnabled:true,bevelThickness:BV,bevelSize:BV,bevelOffset:-BV,bevelSegments:3,curveSegments:4});
+    g.translate(0,0,-halfD);
+    const ins2=insetPoly(ins,BV);
+    const d=new THREE.ShapeGeometry(roundedShape(ins2,Math.max(2,20*U-BV),cx,cy),4);
+    d.translate(0,0,halfD+BV+.35);
+    const pos=d.attributes.position, uv=d.attributes.uv;
+    for(let i=0;i<pos.count;i++){ uv.setXY(i,(pos.getX(i)+cx)/BW,1-(cy-pos.getY(i))/BH); }
+    uv.needsUpdate=true;
+    p.mesh.geometry.dispose(); p.mesh.geometry=g; p.decal.geometry.dispose(); p.decal.geometry=d;
+    p.base.set(cx-BW/2,BH/2-cy); p.hw=(x1-x0)/2; p.hh=(y1-y0)/2;
+  }
+}
+
+/* ---------- back sliver ---------- */
+const sliver={mesh:null,hw:90,hh:50,cx:0,cy:0,sc:0,hov:0,rx:{x:0,v:0},ry:{x:0,v:0},mat:glassMat(.35,false)};
+function buildSliver(){
+  const fr=portrait?[[.05,.14],[.36,.105],[.42,.17],[.06,.185]]:[[.147,.243],[.252,.169],[.287,.277],[.151,.258]];
+  const lab=portrait?[.215,.15]:[.219,.238];
+  const k=portrait?.6:W/1918;
+  const pts=fr.map(q=>[q[0]*W,q[1]*H]);
+  let cx=0,cy=0; pts.forEach(q=>{cx+=q[0];cy+=q[1]}); cx/=4; cy/=4;
+  const g=new THREE.ExtrudeGeometry(roundedShape(pts,9*k,cx,cy),{depth:11*k,bevelEnabled:true,bevelThickness:2.4*k,bevelSize:2.4*k,bevelOffset:-2.4*k,bevelSegments:3,curveSegments:4});
+  g.translate(0,0,-5.5*k);
+  if(!sliver.mesh){ sliver.mesh=new THREE.Mesh(g,sliver.mat); scene.add(sliver.mesh); } else { sliver.mesh.geometry.dispose(); sliver.mesh.geometry=g; }
+  sliver.cx=cx-W/2; sliver.cy=H/2-cy; sliver.hw=Math.abs(fr[2][0]-fr[0][0])*W/2; sliver.hh=Math.abs(fr[3][1]-fr[1][1])*H/2;
+  sliver.mesh.position.set(sliver.cx,sliver.cy,0);
+  const b=$('#back'); b.style.left=(lab[0]*100)+'vw'; b.style.top=(lab[1]*100)+'vh';
+}
+
+/* ---------- page canvas ---------- */
+function setT(){ /* text scale */ }
+const font=(w,fs)=>`${w} ${fs}px Inter,system-ui,sans-serif`;
+function mt(s,fs,w,ls){ mc.font=font(w,fs); mc.letterSpacing=(ls*fs)+'px'; return mc.measureText(s).width; }
+function wrap(txt,fs,w,maxW){ const words=txt.split(' '),out=[]; let l=''; for(const x of words){ const t=l?l+' '+x:x; if(mt(t,fs,w,0)>maxW&&l){out.push(l);l=x}else l=t } if(l)out.push(l); return out; }
+
+function buildItems(){
+  items=[]; const add=o=>(items.push(o),o); const f=(v,min)=>Math.max(min||11,v*T);
+  const nfs=f(15.5,12), pad=portrait?20:44*S, cy=navH/2, base=cy+nfs*.34, ms=Math.max(18,22*T);
+  add({k:'mark',x:pad,y:cy-ms/2,s:ms});
+  add({k:'text',id:'brand',t:'Платинум Арена',x:pad+ms+10*T,y:base,fs:nfs*1.1,w:600,ls:-.01,col:'#fff'});
+  if(!portrait){
+    const names=[['Комнаты','open'],['Цены','open'],['Контакты','maps']], gap=40*S, ws=names.map(n=>mt(n[0],nfs,400,0));
+    let x=BW/2-(ws.reduce((a,b)=>a+b,0)+gap*2)/2;
+    names.forEach((n,i)=>{add({k:'text',id:'n'+i,t:n[0],x,y:base,fs:nfs,w:400,ls:0,col:'rgba(255,255,255,.6)',hcol:'#fff',act:n[1]}); x+=ws[i]+gap});
+    add({k:'text',id:'tel',t:'+7 (913) 069-85-99',x:BW-pad,y:base,fs:nfs,w:500,ls:0,col:'rgba(255,255,255,.85)',hcol:'#fff',align:'right',act:'tel'});
+  } else add({k:'text',id:'n1',t:'Цены',x:BW-pad,y:base,fs:nfs,w:500,ls:0,col:'rgba(255,255,255,.75)',hcol:'#fff',align:'right',act:'open'});
+  const x0=PX+(portrait?.075:.058)*PW, efs=f(11.5,10);
+  add({k:'text',id:'eb',t:portrait?'КЛУБ С КОМНАТАМИ · 24/7':'КОМПЬЮТЕРНЫЙ КЛУБ · НОВОСИБИРСК · 24/7',x:x0,y:PY+(portrait?.045:.135)*PH+efs,fs:efs,w:500,ls:portrait?.14:.2,col:'rgba(255,255,255,.38)'});
+  const hfs=portrait?Math.min(.12*PW,.1*PH):Math.min(.078*PW,.2*PH);
+  const hy=portrait?PY+.045*PH+efs+22*T:PY+.205*PH, lead=.97;
+  ['Играй','в комнате.'].forEach((s,i)=>add({k:'text',id:'h'+i,t:s,x:x0,y:hy+hfs*.8+i*hfs*lead,fs:hfs,w:500,ls:-.045,grad:[hy,hy+hfs*lead*2]}));
+  let y=hy+hfs*lead*2+(portrait?18*T:.035*PH);
+  const sfs=f(17.5,13);
+  const sub=portrait?wrap('Отдельные комнаты Solo, Duo, Trio и Boot Camp, PS5 и мощные ПК. Круглосуточно — от 150 ₽ за час.',sfs,400,PW*.85):['Отдельные комнаты Solo, Duo, Trio и Boot Camp, PS5 и мощные ПК.','Работаем круглосуточно — от 150 ₽ за час.'];
+  sub.forEach((s,i)=>add({k:'text',id:'s'+i,t:s,x:x0,y:y+sfs+i*sfs*1.5,fs:sfs,w:400,ls:0,col:'rgba(255,255,255,.55)'}));
+  y+=sub.length*sfs*1.5+(portrait?18*T:.045*PH);
+  const pw=Math.max(140,152*T), ph=Math.max(36,40*T);
+  add({k:'pill',id:'cta',x:x0,y,w:pw,h:ph,r:Math.max(5,6*T),t:'Забронировать',fs:f(14.5,13),act:'tel'});
+  const lf=f(15,13);
+  add({k:'text',id:'lnk',t:'Комнаты и цены →',x:x0+pw+Math.max(20,28*T),y:y+ph/2+lf*.34,fs:lf,w:500,ls:0,col:'rgba(255,255,255,.85)',hcol:'#fff',act:'open',ul:true});
+  const bfs=f(11.5,10.5), by=PY+PH-Math.max(22,34*T);
+  add({k:'text',id:'c1',t:'© Платинум Арена',x:x0,y:by,fs:bfs,w:400,ls:0,col:'rgba(255,255,255,.34)'});
+  add({k:'text',id:'c2',t:portrait?'24/7':'Октябрьская ул., 34',x:PX+PW-(portrait?.075:.058)*PW,y:by,fs:bfs,w:400,ls:0,col:'rgba(255,255,255,.34)',align:'right'});
+}
+function rr(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+function drawPage(){
+  ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cv.width,cv.height);
+  const k=cv.width/BW; ctx.setTransform(k,0,0,k,0,0); ctx.textBaseline='alphabetic';
+  for(const it of items){
+    const h=hot===it.id;
+    if(it.k==='mark'){ const g=ctx.createLinearGradient(it.x,it.y,it.x+it.s,it.y+it.s); g.addColorStop(0,'#f4f4f6'); g.addColorStop(1,'#a9a9b0'); ctx.fillStyle=g; rr(ctx,it.x,it.y,it.s,it.s,it.s*.24); ctx.fill(); ctx.fillStyle='#17171b'; rr(ctx,it.x+it.s*.3,it.y+it.s*.3,it.s*.4,it.s*.4,it.s*.1); ctx.fill(); }
+    else if(it.k==='pill'){ ctx.fillStyle=h?'#36d67e':'#f2f2f4'; rr(ctx,it.x,it.y,it.w,it.h,it.r); ctx.fill(); ctx.fillStyle='#0b0b0d'; ctx.font=font(500,it.fs); ctx.letterSpacing='0px'; ctx.textAlign='center'; ctx.fillText(it.t,it.x+it.w/2,it.y+it.h/2+it.fs*.35); }
+    else{
+      ctx.font=font(it.w,it.fs); ctx.letterSpacing=(it.ls*it.fs)+'px'; ctx.textAlign=it.align||'left';
+      if(it.grad){ const g=ctx.createLinearGradient(0,it.grad[0],0,it.grad[1]); g.addColorStop(0,'#dcdce0'); g.addColorStop(1,'#bdbdc3'); ctx.fillStyle=g; }
+      else ctx.fillStyle=h&&it.hcol?it.hcol:it.col;
+      ctx.fillText(it.t,it.x,it.y);
+      if(it.ul&&h){ const w=ctx.measureText(it.t).width; ctx.fillRect(it.x,it.y+3,w,1.2); }
+    }
+  }
+  if(pageTex) pageTex.needsUpdate=true;
+}
+function setHot(id){ if(hot!==id){ hot=id; drawPage(); } }
+
+/* ---------- DOM text layer ---------- */
+const txt=$('#txt');
+function buildText(){
+  txt.innerHTML=''; txt.style.width=BW+'px'; txt.style.height=BH+'px';
+  for(const it of items){
+    if(it.k==='mark') continue;
+    const el=document.createElement(it.act?'a':'span'); el.className='t'+(it.act?' b':''); el.textContent=it.t;
+    if(it.act==='open'){ el.href='#'; el.onclick=e=>{e.preventDefault();shatter()}; }
+    else if(it.act==='tel') el.href='tel:+79130698599';
+    else if(it.act==='maps'){ el.href='https://yandex.ru/maps/org/platinum_arena/57763949913/'; el.target='_blank'; el.rel='noopener'; }
+    if(it.k==='pill') el.style.cssText=`left:${it.x}px;top:${it.y}px;width:${it.w}px;height:${it.h}px;font-size:${it.fs}px;line-height:${it.h}px;text-align:center`;
+    else{
+      el.style.fontSize=it.fs+'px'; el.style.fontWeight=it.w; el.style.letterSpacing=(it.ls*it.fs)+'px'; el.style.top=(it.y-it.fs*.97)+'px';
+      if(it.align==='right'){ el.style.left=it.x+'px'; el.style.transform='translateX(-100%)'; } else el.style.left=it.x+'px';
+    }
+    if(it.act){ el.onmouseenter=()=>setHot(it.id); el.onmouseleave=()=>setHot(null); }
+    txt.appendChild(el);
+  }
+}
+function updateHomography(){
+  block.updateMatrixWorld(true); camera.updateMatrixWorld(true);
+  const z=6.5*U+BV, c=[[-BW/2,BH/2],[BW/2,BH/2],[BW/2,-BH/2],[-BW/2,-BH/2]].map(q=>{
+    const v=new THREE.Vector3(q[0],q[1],z); block.localToWorld(v); v.project(camera); return [(v.x*.5+.5)*W,(-v.y*.5+.5)*H];
+  });
+  const [p0,p1,p2,p3]=c, dx1=p1[0]-p2[0],dx2=p3[0]-p2[0],dx3=p0[0]-p1[0]+p2[0]-p3[0],dy1=p1[1]-p2[1],dy2=p3[1]-p2[1],dy3=p0[1]-p1[1]+p2[1]-p3[1];
+  let g=0,h=0; const den=dx1*dy2-dx2*dy1;
+  if(Math.abs(dx3)>1e-9||Math.abs(dy3)>1e-9){ g=(dx3*dy2-dx2*dy3)/den; h=(dx1*dy3-dx3*dy1)/den; }
+  const a=p1[0]-p0[0]+g*p1[0], b=p3[0]-p0[0]+h*p3[0], d=p1[1]-p0[1]+g*p1[1], e=p3[1]-p0[1]+h*p3[1];
+  txt.style.transform=`matrix3d(${a/BW},${d/BW},0,${g/BW},${b/BH},${e/BH},0,${h/BH},0,0,1,0,${p0[0]},${p0[1]},0,1)`;
+}
+
+/* ---------- layout ---------- */
+function layout(){
+  W=innerWidth; H=innerHeight; DPR=Math.min(devicePixelRatio||1,2); portrait=H>W;
+  const mx=W<600?16:W*.055, my=W<600?16:H*.085;
+  BW=W-2*mx; BH=H-2*my; S=BW/1730; U=portrait?Math.max(S,BW/700):S; T=portrait?BW/430:S; F=Math.max(W,H)/1730; BV=2.6*U;
+  navH=portrait?Math.max(56,.07*BH):.108*BH; G=14*U; PX=0; PY=navH+G; PW=BW; PH=BH-PY;
+  renderer.setPixelRatio(DPR); renderer.setSize(W,H);
+  camera.aspect=W/H; camera.position.set(0,0,(H/2)/Math.tan(15*DEG)); camera.updateProjectionMatrix();
+  const k=Math.min(Math.max(DPR,1.5),4096/BW); cv.width=Math.round(BW*k); cv.height=Math.round(BH*k);
+  if(pageTex) pageTex.dispose();
+  pageTex=new THREE.CanvasTexture(cv); pageTex.colorSpace=THREE.SRGBColorSpace; pageTex.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  for(const p of pieces){ p.decal.material.map=pageTex; p.decal.material.needsUpdate=true; }
+  glowU.uR.value=300*S;
+  buildItems(); drawPage(); buildText(); buildSliver(); rebuild(performance.now()/1000);
+}
+
+/* ---------- interaction ---------- */
+addEventListener('pointermove',e=>{ptr.x=e.clientX;ptr.y=e.clientY;ptr.inside=true});
+addEventListener('pointerdown',e=>{ptr.x=e.clientX;ptr.y=e.clientY;ptr.inside=true});
+document.documentElement.addEventListener('mouseleave',()=>{ptr.inside=false});
+addEventListener('resize',layout);
+$('#back').addEventListener('click',back);
+$('#back').addEventListener('mouseenter',()=>sliver.domHover=true);
+$('#back').addEventListener('mouseleave',()=>sliver.domHover=false);
+
+const now=()=>performance.now()/1000;
+function setLayerState(){ txt.style.visibility=(mode==='in'&&!anim)?'visible':'hidden'; }
+function shatter(){
+  if(anim||mode!=='in') return;
+  anim={type:'shatter',t0:now(),stag:.045}; viewOn=true; setLayerState(); setHot(null);
+  sliverShowAt=now()+.3;
+  setTimeout(()=>{ if(viewOn){ $('#defs').classList.add('on'); document.body.classList.add('view'); } },280);
+}
+function back(){
+  if(!viewOn) return;
+  if(anim){ pendingBack=true; return; }
+  viewOn=false; $('#defs').classList.remove('on'); document.body.classList.remove('view');
+  anim={type:'return',t0:now(),stag:.03};
+}
+function flightS(i,t){
+  if(!anim) return mode==='out'?1:0;
+  const u=clamp((t-anim.t0-i*anim.stag)/.72,0,1);
+  if(anim.type==='shatter') return u*u*u;
+  const c1=1.70158,c3=c1+1; return 1-(1+c3*Math.pow(u-1,3)+c1*Math.pow(u-1,2));
+}
+function spring(s,target,dt){ const a=170*(target-s.x)-19*s.v; s.v+=a*dt; s.x+=s.v*dt; }
+
+const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), qT=new THREE.Quaternion(), qTip=new THREE.Quaternion(), eul=new THREE.Euler();
+let rebuildAcc=1, last=now(), hovered=-1;
+
+function frame(ms){
+  const t=ms/1000, dt=Math.min(.05,t-last); last=t;
+  /* anim lifecycle */
+  if(anim){
+    const dur=.72+5*anim.stag+.05;
+    if(t-anim.t0>dur){
+      mode=anim.type==='shatter'?'out':'in'; anim=null; setLayerState();
+      if(mode==='out'&&pendingBack){pendingBack=false;back();}
+    }
+  }
+  const interactive=mode==='in'&&!anim;
+  ptrAmt+=((ptr.inside&&interactive?1:0)-ptrAmt)*(1-Math.exp(-dt/.25));
+  glowU.uAmt.value=ptrAmt; glowU.uPtr.value.set(ptr.x-W/2,H/2-ptr.y);
+  /* tilt */
+  const pxN=ptr.inside?(ptr.x/W-.5)*2:0, pyN=ptr.inside?(ptr.y/H-.5)*2:0, kk=1-Math.exp(-dt/.3);
+  tilt.ry+=((pxN*7-1.2)*DEG-tilt.ry)*kk; tilt.rx+=((pyN*5.5+.8)*DEG-tilt.rx)*kk;
+  block.rotation.set(tilt.rx,tilt.ry,0);
+  block.updateMatrixWorld(true);
+  /* hover pick */
+  hovered=-1;
+  if(interactive&&ptr.inside){
+    ndc.set(ptr.x/W*2-1,-(ptr.y/H*2-1)); ray.setFromCamera(ndc,camera);
+    const hit=ray.intersectObjects(pieces.map(p=>p.mesh),false)[0];
+    if(hit) hovered=pieces.findIndex(p=>p.mesh===hit.object);
+  }
+  /* rebuild */
+  rebuildAcc+=dt; if(rebuildAcc>=1/45){ rebuildAcc=0; rebuild(t); }
+  const lp={x:ptr.x-W/2,y:H/2-ptr.y};
+  for(const p of pieces){
+    const hv=p.i===hovered;
+    spring(p.lift,hv?(p.id==='nav'?32:50)*U:0,dt);
+    const dx=lp.x-p.base.x, dy=lp.y-p.base.y;
+    spring(p.ry,hv?clamp(dx/p.hw,-1,1)*.24:0,dt);
+    spring(p.rx,hv?-clamp(dy/p.hh,-1,1)*.24:0,dt);
+    p.hov+=((hv?1:0)-p.hov)*(1-Math.exp(-dt/.12));
+    p.mat.iridescence=.55+.45*p.hov; p.mat.envMapIntensity=.42*(1+.9*p.hov);
+    const s=flightS(p.i,t), len=Math.hypot(p.base.x,p.base.y)||1, out=(800+p.fly.r*300)*F;
+    p.obj.position.set(p.base.x+p.base.x/len*out*s, p.base.y+p.base.y/len*out*s*.6-(350*F*s+1300*F*s*s), p.lift.x+p.fly.vz*F*s);
+    eul.set(p.rx.x,p.ry.x,0); qTip.setFromEuler(eul); qT.setFromAxisAngle(p.fly.ax,p.fly.ang*s); p.obj.quaternion.copy(qT).multiply(qTip);
+  }
+  /* sliver */
+  const want=viewOn&&t>=sliverShowAt?1:0;
+  sliver.sc+=(want-sliver.sc)*(1-Math.exp(-dt/(want?.12:.07)));
+  if(sliver.mesh){
+    sliver.mesh.visible=sliver.sc>.01; sliver.mesh.scale.setScalar(Math.max(.0001,sliver.sc));
+    let hv=!!sliver.domHover;
+    if(sliver.mesh.visible&&ptr.inside){ ndc.set(ptr.x/W*2-1,-(ptr.y/H*2-1)); ray.setFromCamera(ndc,camera); if(ray.intersectObject(sliver.mesh,false).length) hv=true; }
+    const dx=ptr.x-W/2-sliver.cx, dy=H/2-ptr.y-sliver.cy;
+    spring(sliver.ry,hv?clamp(dx/sliver.hw,-1,1)*.14:0,dt); spring(sliver.rx,hv?-clamp(dy/sliver.hh,-1,1)*.14:0,dt);
+    sliver.hov+=((hv?1:0)-sliver.hov)*(1-Math.exp(-dt/.12));
+    sliver.mat.iridescence=.35+.4*sliver.hov; sliver.mat.envMapIntensity=.42*(1+.9*sliver.hov);
+    eul.set(.08+.035*Math.sin(t*6.28)+sliver.rx.x,-.16+.03*Math.sin(t*5.6+1.3)+sliver.ry.x,0); sliver.mesh.setRotationFromEuler(eul);
+  }
+  if(interactive) updateHomography();
+  renderer.render(scene,camera);
+  requestAnimationFrame(frame);
+}
+
+try{ await Promise.race([Promise.all(['400','500','600'].map(w=>document.fonts.load(w+' 16px Inter','Привет Играй 140 ₽'))),new Promise(r=>setTimeout(r,2500))]); }catch(e){}
+layout();
+mode='out'; anim={type:'return',t0:now()+.15,stag:.03}; setLayerState();
+requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
